@@ -46,6 +46,16 @@ weaponise:
 - **Audit.** Every spend attempt logs one structured line (action, amount,
   destination, outcome).
 
+## Authentication
+
+`monero-wallet-rpc` started with `--rpc-login` uses HTTP **digest** auth, and
+rejects a plain Basic header with 401. Its nonce is also bound to the TCP
+connection: the authenticated retry must travel on the same socket the
+challenge arrived on, or the server answers `stale=true`. Python's
+`urllib` opens a new connection per request and its own digest handler does not
+interoperate with monero's server, so `rpc.py` computes the digest itself and
+does the challenge/retry on one `http.client` connection per call.
+
 ## Configuration
 
 | Variable | Default | Meaning |

@@ -51,6 +51,15 @@ uv run python scripts/smoke.py # boots the real app on a loopback port
 - `DailyBudget` is process-global and per-UTC-day; only committed (non-dry-run)
   spends reserve it, and a failed call releases.
 - `rpc.py` raises one exception type, `RPCError`, and is stdlib-only.
+- **Authentication is HTTP digest, on one connection per call.**
+  monero-wallet-rpc rejects Basic with 401; its digest nonce is bound to the
+  TCP connection (a fresh connection gives `stale=true`); and Python's
+  `urllib` digest handler does not interoperate with monero's server. Hence
+  `rpc.py` computes the digest itself and does challenge + retry on a single
+  `http.client.HTTPConnection` created in `call()` and always closed. Do not
+  "simplify" this to `urllib` + a Basic header. `tests/test_rpc.py` pins the
+  RFC 2617 vector and the retry-on-one-connection flow via the `_connect` /
+  `_post` seams.
 - Tool bodies are synchronous (`def`); anyio runs them on worker threads.
 - `tests/test_auth.py` drives the middleware as a **pure ASGI app** (no
   socket); a fake `Inner` app records whether it was reached and what body it
