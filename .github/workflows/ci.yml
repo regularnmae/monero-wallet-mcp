@@ -68,19 +68,27 @@ jobs:
       - uses: actions/checkout@v4
       - name: Build the image
         run: |
-          podman build -t bitcoin-node-mcp:ci .
+          podman build -t monero-wallet-mcp:ci .
       - name: Build tools are not in the runtime image
         run: |
-          container_id=$(podman run -d -e BITCOIN_MCP_TOKEN=ci-token \
-            -e MCP_HOST=127.0.0.1 -e MCP_PORT=8000 bitcoin-node-mcp:ci)
+          container_id=$(podman run -d -e MONERO_MCP_TOKEN=ci-token \
+            -e MCP_HOST=127.0.0.1 -e MCP_PORT=8000 monero-wallet-mcp:ci)
           podman exec "$container_id" sh -c 'command -v uv || command -v pip' \
             && { echo "uv or pip leaked into the runtime image"; exit 1; } \
             || echo "no uv or pip in the runtime image"
           podman exec "$container_id" python -c \
             'import mcp, uvicorn, rpc; print("deps present")'
           podman exec "$container_id" python -c "
-          import urllib.request, urllib.error
-          urllib.request.urlopen('http://127.0.0.1:8000/health', timeout=5)
+          import time, urllib.request, urllib.error
+          deadline = time.time() + 30
+          while True:
+              try:
+                  urllib.request.urlopen('http://127.0.0.1:8000/health', timeout=2)
+                  break
+              except Exception:
+                  if time.time() > deadline:
+                      raise
+                  time.sleep(0.5)
           try:
               urllib.request.urlopen(urllib.request.Request(
                   'http://127.0.0.1:8000/mcp', data=b'{}', method='POST',
