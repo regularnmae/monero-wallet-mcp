@@ -117,7 +117,7 @@ cd ~/build/stack
 
 `stack/deploy.sh` opens `8103/tcp` in firewalld on a fresh host.
 `stack/deploy/install.sh` writes three env files under
-`~/.config/monero-wallet-mcp/` (mode 600): `token.env` (both tokens),
+`$DATA_DIR/config/monero-wallet-mcp/` (mode 600): `token.env` (both tokens),
 `upstream.env` (the RPC login, read from the running container) and `spend.env`
 (seeded with `ENABLE_SPENDING=0` and cap placeholders). Spending stays off
 until you edit `spend.env` and restart. The env-file shapes are documented in

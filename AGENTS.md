@@ -75,6 +75,6 @@ live there, not here.
 - A new top-level module must go in the `Containerfile`'s `COPY` lines **and**
   pyright's `include`.
 - Publishing: `PublishPort=8103:8000`. Open `8103/tcp` in firewalld.
-- `stack/deploy/install.sh` writes `~/.config/monero-wallet-mcp/{token,upstream,spend}.env`
-  (mode 600) and symlinks the unit. The env-file shapes are documented in
+- `stack/deploy/install.sh` writes `$DATA_DIR/config/monero-wallet-mcp/{token,upstream,spend}.env`
+  (mode 600) and renders the unit. The env-file shapes are documented in
   `stack/deploy/examples/monero-wallet-mcp/`.
