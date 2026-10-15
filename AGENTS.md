@@ -3,8 +3,10 @@
 Flat three-module Python MCP server (not a package). `server.py` is the app —
 config, read tools, the gated spend tools, the spend budget and the
 two-token middleware; `rpc.py` is its **stdlib-only** monero-wallet-rpc client;
-`healthcheck.py` is the container healthcheck probe. Rootless podman/quadlet,
-unit under `deploy/`. uv only. `mcp` is 2.x (`MCPServer`).
+`healthcheck.py` is the container healthcheck probe. Rootless podman/quadlet;
+the runtime — its quadlet unit, the `npm-network` it shares and the env wiring —
+is owned by the `stack` repo (https://github.com/regularnmae/stack), not here.
+uv only. `mcp` is 2.x (`MCPServer`).
 
 One of four sibling crypto MCP servers. This is a **money server** — the
 safety posture matters more than the features. Read `README.md` before
@@ -17,8 +19,12 @@ uv run ruff check .            # lint (CI gate)
 uv run pyright                 # typecheck (CI gate)
 uv run pytest -q               # tests, no network
 uv run python scripts/smoke.py # boots the real app on a loopback port
-./deploy.sh                    # builds, restarts monero-wallet-mcp.service, waits for "(healthy)"
 ```
+
+Deployment is owned by the `stack` repo: `cd ~/build/stack && ./deploy.sh --only monero-wallet-mcp`
+rebuilds the image, restarts `monero-wallet-mcp.service` and waits for
+"(healthy)"; `./deploy.sh` deploys the whole stack. The unit and `npm-network`
+live there, not here.
 
 ## Safety invariants — do not weaken these
 
@@ -69,6 +75,6 @@ uv run python scripts/smoke.py # boots the real app on a loopback port
 - A new top-level module must go in the `Containerfile`'s `COPY` lines **and**
   pyright's `include`.
 - Publishing: `PublishPort=8103:8000`. Open `8103/tcp` in firewalld.
-- `deploy/install.sh` writes `~/.config/monero-wallet-mcp/{token,upstream,spend}.env`
-  (mode 600) and symlinks the unit; `npm-network.network` is linked only if no
-  other repo already provided it.
+- `stack/deploy/install.sh` writes `~/.config/monero-wallet-mcp/{token,upstream,spend}.env`
+  (mode 600) and symlinks the unit. The env-file shapes are documented in
+  `stack/deploy/examples/monero-wallet-mcp/`.

@@ -71,8 +71,9 @@ does the challenge/retry on one `http.client` connection per call.
 | `MCP_HOST` / `MCP_PORT` | `0.0.0.0` / `8000` | Listen address |
 | `LOG_LEVEL` | `INFO` | Log level |
 
-The upstream wallet should use `--rpc-login`; `install.sh` reads it from the
-running container. Note that the regtest compose disables wallet-rpc login —
+The upstream wallet should use `--rpc-login`; `stack/deploy/install.sh` reads it
+from the running container. Note that the regtest compose disables wallet-rpc
+login —
 that must **not** carry over to a mainnet wallet.
 
 ## Running it
@@ -105,17 +106,19 @@ uv run python scripts/smoke.py  # boots the real app on loopback
 
 ## Deploying
 
-`deploy/` owns the quadlet unit and `install.sh`. On the target host:
+The runtime for this server — its quadlet unit and env wiring — is owned by the
+separate [`stack`](https://github.com/regularnmae/stack) repo, not here:
 
 ```sh
-cd ~/build && git clone <url> monero-wallet-mcp && cd monero-wallet-mcp
-./deploy/install.sh
-./deploy.sh
-sudo firewall-cmd --permanent --add-port=8103/tcp && sudo firewall-cmd --reload
+cd ~/build/stack
+./deploy.sh --only monero-wallet-mcp   # build the image, restart, wait for "(healthy)"
+./deploy.sh                            # the whole stack
 ```
 
-`install.sh` writes three env files under `~/.config/monero-wallet-mcp/`
-(mode 600): `token.env` (both tokens), `upstream.env` (the RPC login, read
-from the running container) and `spend.env` (seeded with `ENABLE_SPENDING=0`
-and cap placeholders). Spending stays off until you edit `spend.env` and
-restart. Roll back with `git checkout <older-sha> && ./deploy.sh`.
+`stack/deploy.sh` opens `8103/tcp` in firewalld on a fresh host.
+`stack/deploy/install.sh` writes three env files under
+`~/.config/monero-wallet-mcp/` (mode 600): `token.env` (both tokens),
+`upstream.env` (the RPC login, read from the running container) and `spend.env`
+(seeded with `ENABLE_SPENDING=0` and cap placeholders). Spending stays off
+until you edit `spend.env` and restart. The env-file shapes are documented in
+`stack/deploy/examples/monero-wallet-mcp/`.

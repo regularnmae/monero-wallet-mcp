@@ -1,15 +1,14 @@
-# deploy/ — what this repo owns, and what it depends on
+# What this repo owns, and what it depends on
 
-This repo owns exactly **one** unit — `monero-wallet-mcp.container` — plus a
-shared network file:
-
-- `monero-wallet-mcp.container` — the MCP server, `PublishPort=8103:8000`.
-- `npm-network.network` — the podman network it shares with the daemons.
-  `install.sh` links it **only if no other repo has already provided it**.
+This repo owns only the **application** — its Python code, tests, CI and
+`Containerfile`. It ships no unit and no env file. The runtime is owned by
+[`stack`](https://github.com/regularnmae/stack), which holds every quadlet unit
+and the `npm-network.network` the MCP servers share, and renders the
+`~/.config/<name>/*.env` files. See `stack/deploy/` and
+`stack/deploy/examples/monero-wallet-mcp/`.
 
 It does **not** own the wallet RPC. The `monero-wallet-rpc` unit is owned by
-[`crypto-nodes`](https://github.com/regularnmae/crypto-nodes), together with the
-rest of the crypto node stack — one file, one owner.
+`stack`, together with the rest of the crypto node stack — one file, one owner.
 
 ## Upstream contract
 
@@ -35,10 +34,11 @@ The wallet can move funds, so this repo also carries the spend guard rails
 ## Deploy
 
 ```sh
-./deploy/install.sh     # token.env + upstream.env + spend.env (ENABLE_SPENDING=0)
-./deploy.sh
-sudo firewall-cmd --permanent --add-port=8103/tcp && sudo firewall-cmd --reload
+cd ~/build/stack
+./deploy.sh --only monero-wallet-mcp   # build the image, restart, wait for "(healthy)"
 ```
 
-`install.sh` reads `--rpc-login` from the running `monero-wallet-rpc`
-container. Spending stays **off** until you edit `~/.config/monero-wallet-mcp/spend.env`.
+`stack/deploy/install.sh` reads `--rpc-login` from the running
+`monero-wallet-rpc` container. Spending stays **off** until you edit
+`~/.config/monero-wallet-mcp/spend.env`; `./deploy.sh` opens `8103/tcp` in
+firewalld.
