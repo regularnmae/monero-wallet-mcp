@@ -3,9 +3,9 @@
 This repo owns only the **application** — its Python code, tests, CI and
 `Containerfile`. It ships no unit and no env file. The runtime is owned by
 [`stack`](https://github.com/regularnmae/stack), which holds every quadlet unit
-and the `npm-network.network` the MCP servers share, and renders the
-`$DATA_DIR/config/<name>/*.env` files. See `stack/deploy/` and
-`stack/deploy/examples/monero-wallet-mcp/`.
+and the `npm-network.network` the MCP servers share, writes this server's env
+file(s), and publishes the host port. See that repo for the unit, the env-file
+locations and `stack/deploy/examples/monero-wallet-mcp/`.
 
 It does **not** own the wallet RPC. The `monero-wallet-rpc` unit is owned by
 `stack`, together with the rest of the crypto node stack — one file, one owner.
@@ -38,7 +38,6 @@ cd ~/build/stack
 ./deploy.sh --only monero-wallet-mcp   # build the image, restart, wait for "(healthy)"
 ```
 
-`stack/deploy/install.sh` reads `--rpc-login` from the running
-`monero-wallet-rpc` container. Spending stays **off** until you edit
-`$DATA_DIR/config/monero-wallet-mcp/spend.env`; `./deploy.sh` opens `8103/tcp` in
-firewalld.
+`stack` reads `--rpc-login` from the running `monero-wallet-rpc` container.
+Spending stays **off** until you flip `ENABLE_SPENDING` in the spend env `stack`
+seeds; see that repo for the env-file location and the host port.

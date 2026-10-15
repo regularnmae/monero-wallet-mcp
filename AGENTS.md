@@ -74,7 +74,10 @@ live there, not here.
   test (tests is a package) — use the fixtures.
 - A new top-level module must go in the `Containerfile`'s `COPY` lines **and**
   pyright's `include`.
-- Publishing: `PublishPort=8103:8000`. Open `8103/tcp` in firewalld.
-- `stack/deploy/install.sh` writes `$DATA_DIR/config/monero-wallet-mcp/{token,upstream,spend}.env`
-  (mode 600) and renders the unit. The env-file shapes are documented in
-  `stack/deploy/examples/monero-wallet-mcp/`.
+- The image declares no `HEALTHCHECK`; the `stack` unit supplies
+  `HealthCmd=python /app/healthcheck.py`. `stack` also writes this server's env
+  files (both tokens, the RPC login, and the spend policy) and publishes the
+  host port; see that repo for the unit and env-file locations, and
+  `stack/deploy/examples/monero-wallet-mcp/` for their shape.
+- The server binds `0.0.0.0:8000` and serves `/mcp` (token-gated); `/health` is
+  open and answers exactly `{"status":"ok"}`.

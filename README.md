@@ -71,9 +71,8 @@ does the challenge/retry on one `http.client` connection per call.
 | `MCP_HOST` / `MCP_PORT` | `0.0.0.0` / `8000` | Listen address |
 | `LOG_LEVEL` | `INFO` | Log level |
 
-The upstream wallet should use `--rpc-login`; `stack/deploy/install.sh` reads it
-from the running container. Note that the regtest compose disables wallet-rpc
-login —
+The upstream wallet should use `--rpc-login`; `stack` reads it from the running
+container. Note that the regtest compose disables wallet-rpc login —
 that must **not** carry over to a mainnet wallet.
 
 ## Running it
@@ -107,18 +106,14 @@ uv run python scripts/smoke.py  # boots the real app on loopback
 ## Deploying
 
 The runtime for this server — its quadlet unit and env wiring — is owned by the
-separate [`stack`](https://github.com/regularnmae/stack) repo, not here:
+separate [`stack`](https://github.com/regularnmae/stack) repo, not here. `stack`
+supplies both tokens, reads the wallet's RPC login into the env file, publishes
+the host port and provides the healthcheck; see that repo for the unit and
+env-file locations. Spending stays off until you flip `ENABLE_SPENDING` in the
+spend env `stack` seeds (shape: `stack/deploy/examples/monero-wallet-mcp/`).
 
 ```sh
 cd ~/build/stack
 ./deploy.sh --only monero-wallet-mcp   # build the image, restart, wait for "(healthy)"
 ./deploy.sh                            # the whole stack
 ```
-
-`stack/deploy.sh` opens `8103/tcp` in firewalld on a fresh host.
-`stack/deploy/install.sh` writes three env files under
-`$DATA_DIR/config/monero-wallet-mcp/` (mode 600): `token.env` (both tokens),
-`upstream.env` (the RPC login, read from the running container) and `spend.env`
-(seeded with `ENABLE_SPENDING=0` and cap placeholders). Spending stays off
-until you edit `spend.env` and restart. The env-file shapes are documented in
-`stack/deploy/examples/monero-wallet-mcp/`.
